@@ -1,0 +1,40 @@
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment
+.venv/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
+
+# Ignore compiled files
+*.so
+*.dll
+*.dylib
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.bak
+
+# Ignore any other irrelevant files
+*.out
+*.o
+*.class
+
+# Ignore all files outside of this project
+/*
+!.gitignore
+!README.md
+!LICENSE
+!requirements.txt
+!src/
