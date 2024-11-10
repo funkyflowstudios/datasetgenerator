@@ -2,34 +2,32 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-import string
+import sys
+import os
 
-# Download necessary NLTK data
-nltk.download('punkt', quiet=True)
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from scripts.download_nltk_data import download_nltk_data
 def process_text(text):
-    """
-    Process the input text by tokenizing, removing stopwords, and lemmatizing.
+    try:
+        # Ensure NLTK data is downloaded
+        download_nltk_data()
+        # Tokenization
+        tokens = word_tokenize(text.lower())
 
-    Args:
-        text (str): The input text to process.
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        tokens = [token for token in tokens if token not in stop_words]
 
-    Returns:
-        list: A list of processed words.
-    """
-    # Tokenize the text
-    tokens = word_tokenize(text.lower())
+        # Lemmatization
+        lemmatizer = WordNetLemmatizer()
+        tokens = [lemmatizer.lemmatize(token) for token in tokens]
 
-    # Remove punctuation and numbers
-    tokens = [token for token in tokens if token not in string.punctuation and not token.isdigit()]
+        return tokens
 
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    tokens = [token for token in tokens if token not in stop_words]
+    except Exception as e:
+        print(f"An error occurred while processing text: {str(e)}")
+        return None
 
-    # Lemmatize the tokens
-    lemmatizer = WordNetLemmatizer()
-    tokens = [lemmatizer.lemmatize(token) for token in tokens]
-
-    return tokens
+    # Rest of your function...

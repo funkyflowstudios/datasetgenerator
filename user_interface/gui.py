@@ -1,24 +1,21 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton
-from data_processing.text_processing import process_text
-from data_processing.image_processing import process_image
-from data_processing.audio_processing import process_audio
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Dataset Generator")
+        self.setWindowTitle("DatasetGenerator")
         self.setGeometry(100, 100, 800, 600)
 
-        # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
 
-        # Add status label
-        self.status_label = QLabel("Welcome to Dataset Generator")
+        layout = QVBoxLayout()
+        central_widget.setLayout(layout)
+
+        self.status_label = QLabel("Welcome to DatasetGenerator")
         layout.addWidget(self.status_label)
 
-        # Add buttons for different actions
+        # Add buttons for various operations
         buttons = [
             ("Web Scraping", self.web_scraping),
             ("Social Media", self.social_media),
@@ -35,9 +32,7 @@ class MainWindow(QMainWindow):
             button.clicked.connect(button_function)
             layout.addWidget(button)
 
-        # Example usage of processing functions
-        processed_text = process_text("Sample text")
-        print(processed_text)
+    # Define methods for button actions
     def web_scraping(self):
         self.status_label.setText("Web scraping in progress...")
 

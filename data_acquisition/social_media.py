@@ -1,49 +1,35 @@
-import tweepy
-import praw
-import os
-from dotenv import load_dotenv
+import time
+import random
 
-load_dotenv()  # Load environment variables from .env file
+def exponential_backoff(attempt, max_delay=900):  # 900 seconds = 15 minutes
+    delay = min((2 ** attempt) + random.random(), max_delay)
+    print(f"Rate limit reached. Waiting for {delay:.2f} seconds...")
+    time.sleep(delay)
+def get_x_data(query, count):
+    # ... (previous code remains the same)
 
-def get_x_data(query, count=100):
-    """
-    Fetch tweets from X (Twitter) based on a query.
+    attempt = 0
+    while len(all_tweets) < count:
+        try:
+            tweets = client.search_recent_tweets(query=query, max_results=max_results)
+            if not tweets.data:
+                break
+            all_tweets.extend([tweet.text for tweet in tweets.data])
+            time.sleep(2)  # Wait for 2 seconds between requests to avoid rate limiting
+        except tweepy.TooManyRequests:
+            if attempt < 5:  # Max 5 retries
+                exponential_backoff(attempt)
+                attempt += 1
+            else:
+                print("Max retries reached. Stopping.")
+                break
+        except Exception as e:
+            print(f"An error occurred while fetching tweets: {str(e)}")
+            break
 
-    Args:
-        query (str): Search query for tweets.
-        count (int): Number of tweets to fetch (max 100 per request). Defaults to 100.
+    return all_tweets[:count]
 
-    Returns:
-        list: A list of dictionaries containing tweet data.
-              Each dictionary includes 'id', 'text', 'user', 'created_at',
-              'retweet_count', and 'favorite_count'.
-    """
-    auth = tweepy.OAuthHandler(
-        os.getenv('TWITTER_API_KEY'),
-        os.getenv('TWITTER_API_SECRET_KEY')
-    )
-    auth.set_access_token(
-        os.getenv('TWITTER_ACCESS_TOKEN'),
-        os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
-    )
-
-    api = tweepy.API(auth)
-
-    tweets = []
-    try:
-        for tweet in tweepy.Cursor(api.search_tweets, q=query, tweet_mode='extended').items(count):
-            tweets.append({
-                'id': tweet.id,
-                'text': tweet.full_text,
-                'user': tweet.user.screen_name,
-                'created_at': tweet.created_at,
-                'retweet_count': tweet.retweet_count,
-                'favorite_count': tweet.favorite_count
-            })
-    except tweepy.TweepError as e:
-        print(f"Error fetching tweets: {e}")
-
-    return tweets
+    # ... (rest of the code remains the same)
 
 def get_reddit_data(subreddit, limit=100):
     """

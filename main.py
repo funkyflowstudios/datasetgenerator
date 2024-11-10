@@ -1,9 +1,12 @@
+import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from user_interface import GUI
+from user_interface.gui import MainWindow
 from data_acquisition.social_media import get_x_data, get_reddit_data
 from data_acquisition.public_datasets import load_public_dataset
 from data_acquisition.local_files import load_local_file
+from scripts.download_nltk_data import download_nltk_data
+import os
 
 class AppDelegate(QObject):
     def __init__(self, parent=None):
@@ -12,46 +15,33 @@ class AppDelegate(QObject):
     def applicationSupportsSecureRestorableState(self):
         return True
 
-class DataFetcher(QObject):
-    finished = pyqtSignal(dict)
+def check_api_keys():
+    api_keys = {
+        'X_BEARER_TOKEN': os.getenv('X_BEARER_TOKEN'),
+        'REDDIT_CLIENT_ID': os.getenv('REDDIT_CLIENT_ID'),
+        'REDDIT_CLIENT_SECRET': os.getenv('REDDIT_CLIENT_SECRET'),
+        'REDDIT_USER_AGENT': os.getenv('REDDIT_USER_AGENT')
+    }
 
-    def run(self):
-        x_data = get_x_data("python programming", 50)
-        reddit_data = get_reddit_data("python", 50)
-        public_data = load_public_dataset("example_dataset")
+    print("Checking API keys:")
+    for key, value in api_keys.items():
+        if value:
+            print(f"  {key}: {'*' * 8}{value[-4:] if value else ''}")
+        else:
+            print(f"  {key}: Not set")
 
-        results = {
-            'x_data': x_data,
-            'reddit_data': reddit_data,
-            'public_data': public_data
-        }
-        self.finished.emit(results)
-def main():
-    app = QApplication([])
-    delegate = AppDelegate()
-    app.setProperty("NSApplicationDelegate", delegate)
+def run():
+    # Check API keys
+    check_api_keys()
 
-    window = GUI()
-    window.show()
+    # Ensure NLTK data is downloaded
+    download_nltk_data()
 
-    # Create a thread for data fetching
-    thread = QThread()
-    fetcher = DataFetcher()
-    fetcher.moveToThread(thread)
-    thread.started.connect(fetcher.run)
-    fetcher.finished.connect(thread.quit)
-    fetcher.finished.connect(fetcher.deleteLater)
-    thread.finished.connect(thread.deleteLater)
-    fetcher.finished.connect(lambda results: print_results(results))
+    # Initialize and show the GUI
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec_())
 
-    # Start the thread
-    thread.start()
-
-    return app.exec_()
-
-def print_results(results):
-    print(f"Fetched {len(results['x_data'])} posts from X")
-    print(f"Fetched {len(results['reddit_data'])} Reddit posts")
-    print(f"Public dataset: {results['public_data']}")
 if __name__ == "__main__":
-    main()
+    run()
