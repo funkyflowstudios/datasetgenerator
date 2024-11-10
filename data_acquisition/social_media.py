@@ -1,87 +1,97 @@
+import tweepy
+import praw
 import os
+from dotenv import load_dotenv
 
-try:
-    import tweepy
-except ImportError:
-    print("Tweepy is not installed. X (formerly Twitter) functionality will be limited.")
-    tweepy = None
-
-try:
-    import praw
-except ImportError:
-    print("PRAW is not installed. Reddit functionality will be limited.")
-    praw = None
+load_dotenv()  # Load environment variables from .env file
 
 def get_x_data(query, count=100):
-    if tweepy is None:
-        return "Tweepy is not installed. Unable to fetch X (formerly Twitter) data."
+    """
+    Fetch tweets from X (Twitter) based on a query.
 
-    api_key = os.environ.get('X_API_KEY')
-    api_key_secret = os.environ.get('X_API_KEY_SECRET')
+    Args:
+        query (str): Search query for tweets.
+        count (int): Number of tweets to fetch (max 100 per request). Defaults to 100.
 
-    if not api_key or not api_key_secret:
-        return "X API credentials not found. Please set the X_API_KEY and X_API_KEY_SECRET environment variables."
+    Returns:
+        list: A list of dictionaries containing tweet data.
+              Each dictionary includes 'id', 'text', 'user', 'created_at',
+              'retweet_count', and 'favorite_count'.
+    """
+    auth = tweepy.OAuthHandler(
+        os.getenv('TWITTER_API_KEY'),
+        os.getenv('TWITTER_API_SECRET_KEY')
+    )
+    auth.set_access_token(
+        os.getenv('TWITTER_ACCESS_TOKEN'),
+        os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+    )
 
+    api = tweepy.API(auth)
+
+    tweets = []
     try:
-        client = tweepy.Client(
-            consumer_key=api_key,
-            consumer_secret=api_key_secret
-        )
-
-        tweets = []
-        for tweet in tweepy.Paginator(client.search_recent_tweets, 
-                                      query=query,
-                                      tweet_fields=['created_at', 'public_metrics'],
-                                      max_results=100).flatten(limit=count):
+        for tweet in tweepy.Cursor(api.search_tweets, q=query, tweet_mode='extended').items(count):
             tweets.append({
                 'id': tweet.id,
-                'text': tweet.text,
+                'text': tweet.full_text,
+                'user': tweet.user.screen_name,
                 'created_at': tweet.created_at,
-                'retweet_count': tweet.public_metrics['retweet_count'],
-                'like_count': tweet.public_metrics['like_count']
+                'retweet_count': tweet.retweet_count,
+                'favorite_count': tweet.favorite_count
             })
-
-        return tweets
     except tweepy.TweepError as e:
-        return f"X API error: {str(e)}"
-    except Exception as e:
-        return f"An unexpected error occurred: {str(e)}"
+        print(f"Error fetching tweets: {e}")
 
-def get_reddit_data(subreddit_name, post_limit=100):
-    if praw is None:
-        return "PRAW is not installed. Unable to fetch Reddit data."
+    return tweets
 
-    client_id = os.environ.get('REDDIT_CLIENT_ID')
-    client_secret = os.environ.get('REDDIT_CLIENT_SECRET')
-    user_agent = os.environ.get('REDDIT_USER_AGENT', 'DatasetGen Script')
+def get_reddit_data(subreddit, limit=100):
+    """
+    Fetch posts from a specified subreddit.
 
-    if not client_id or not client_secret:
-        return "Reddit API credentials not found. Please set the REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET environment variables."
+    Args:
+        subreddit (str): Name of the subreddit to fetch posts from.
+        limit (int): Number of posts to fetch. Defaults to 100.
 
+    Returns:
+        list: A list of dictionaries containing Reddit post data.
+              Each dictionary includes 'id', 'title', 'text', 'author',
+              'created_utc', 'score', and 'num_comments'.
+    """
+    reddit = praw.Reddit(
+        client_id=os.getenv('REDDIT_CLIENT_ID'),
+        client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+        user_agent=os.getenv('REDDIT_USER_AGENT')
+    )
+
+    posts = []
     try:
-        reddit = praw.Reddit(client_id=client_id,
-                             client_secret=client_secret,
-                             user_agent=user_agent)
-
-        subreddit = reddit.subreddit(subreddit_name)
-        posts = []
-
-        for post in subreddit.hot(limit=post_limit):
+        for post in reddit.subreddit(subreddit).hot(limit=limit):
             posts.append({
                 'id': post.id,
                 'title': post.title,
                 'text': post.selftext,
-                'score': post.score,
-                'url': post.url,
+                'author': post.author.name if post.author else '[deleted]',
                 'created_utc': post.created_utc,
-                'num_comments': post.num_comments,
-                'author': str(post.author)
+                'score': post.score,
+                'num_comments': post.num_comments
             })
-
-        return posts
     except praw.exceptions.PRAWException as e:
-        return f"Reddit API error: {str(e)}"
-    except Exception as e:
-        return f"An unexpected error occurred: {str(e)}"
+        print(f"Error fetching Reddit posts: {e}")
 
-# Remove the example usage from this file
+    return posts
+
+# Example usage
+if __name__ == "__main__":
+    x_data = get_x_data("python programming", 10)
+    print(f"Fetched {len(x_data)} tweets")
+    for tweet in x_data[:3]:
+        print(f"Tweet by {tweet['user']}: {tweet['text'][:100]}...")
+        print()
+
+    reddit_data = get_reddit_data("python", 10)
+    print(f"Fetched {len(reddit_data)} Reddit posts")
+    for post in reddit_data[:3]:
+        print(f"Post by {post['author']}: {post['title']}")
+        print(f"Content preview: {post['text'][:100]}...")
+        print()
