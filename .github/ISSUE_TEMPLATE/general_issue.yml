@@ -1,0 +1,52 @@
+name: General Issue
+description: Report a general issue or ask a question
+title: "[ISSUE] "
+labels: question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this issue report!
+
+  - type: input
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the issue or question.
+      placeholder: Describe the issue or question
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      placeholder: Provide steps to reproduce the issue (if applicable)
+
+  - type: input
+    id: expected
+    attributes:
+      label: Expected Outcome
+      description: A clear and concise description of what you expected to happen.
+      placeholder: Describe the expected outcome
+
+  - type: input
+    id: actual
+    attributes:
+      label: Actual Outcome
+      description: A clear and concise description of what actually happened.
+      placeholder: Describe the actual outcome
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: The environment in which the issue was observed.
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
