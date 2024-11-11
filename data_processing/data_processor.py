@@ -13,9 +13,10 @@ class DataProcessor:
         if not data:
             return pd.DataFrame()
 
-        df = pd.DataFrame(data)
-        if columns:
-            df = df[columns]
+        if columns is None:
+            columns = [key for key in data[0].keys()]
+
+        df = pd.DataFrame(data, columns=columns)
         return df
 
     def export_to_csv(self, df: pd.DataFrame, filename: str) -> None:

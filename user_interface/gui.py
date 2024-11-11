@@ -1,74 +1,69 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTextEdit
-from PySide6.QtCore import Qt
-from data_acquisition.social_media import fetch_x_data
-from data_processing.text_processing import process_text
-import traceback
+from PySide6.QtWidgets import (QMainWindow, QLabel, QVBoxLayout, QWidget, 
+                               QPushButton, QLineEdit, QTextEdit, QHBoxLayout)
+from data_acquisition.social_media import fetch_x_data, fetch_reddit_data
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, local_files, data_processor):
         super().__init__()
-        self.setWindowTitle("Dataset Generator")
-        self.setGeometry(100, 100, 800, 600)
 
-        # Create central widget and layout
+        self.local_files = local_files
+        self.data_processor = data_processor
+
+        self.setWindowTitle("Dataset Generator")
+        self.setGeometry(100, 100, 600, 400)
+
+        # Create a central widget and a layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
 
-        # Create buttons
-        button_layout = QHBoxLayout()
-        self.web_scraping_btn = QPushButton("Web Scraping")
-        self.social_media_btn = QPushButton("Social Media")
-        self.public_datasets_btn = QPushButton("Public Datasets")
-        self.local_files_btn = QPushButton("Local Files")
+        # Add GUI components
+        self.add_data_acquisition_section(main_layout)
+        self.add_data_processing_section(main_layout)
+        self.add_output_section(main_layout)
 
-        button_layout.addWidget(self.web_scraping_btn)
-        button_layout.addWidget(self.social_media_btn)
-        button_layout.addWidget(self.public_datasets_btn)
-        button_layout.addWidget(self.local_files_btn)
+    def add_data_acquisition_section(self, layout):
+        layout.addWidget(QLabel("Data Acquisition"))
 
-        main_layout.addLayout(button_layout)
+        input_layout = QHBoxLayout()
+        self.query_input = QLineEdit()
+        self.query_input.setPlaceholderText("Enter search query")
+        input_layout.addWidget(self.query_input)
 
-        # Create text area for displaying results
-        self.result_text = QTextEdit()
-        self.result_text.setReadOnly(True)
-        main_layout.addWidget(self.result_text)
+        fetch_button = QPushButton("Fetch Data")
+        fetch_button.clicked.connect(self.fetch_data)
+        input_layout.addWidget(fetch_button)
 
-        # Create status label
-        self.status_label = QLabel("Ready")
-        main_layout.addWidget(self.status_label)
+        layout.addLayout(input_layout)
 
-        # Connect buttons to functions
-        self.web_scraping_btn.clicked.connect(self.web_scraping)
-        self.social_media_btn.clicked.connect(self.social_media)
-        self.public_datasets_btn.clicked.connect(self.public_datasets)
-        self.local_files_btn.clicked.connect(self.local_files)
+    def add_data_processing_section(self, layout):
+        layout.addWidget(QLabel("Data Processing"))
 
-    def web_scraping(self):
-        self.status_label.setText("Web scraping in progress...")
-        # Implement web scraping logic here
+        process_button = QPushButton("Process Data")
+        process_button.clicked.connect(self.process_data)
+        layout.addWidget(process_button)
 
-    def social_media(self):
-        self.status_label.setText("Collecting social media data...")
-        try:
-            # Example: Fetch data from X
-            x_data = fetch_x_data("python", 10)
-            if x_data:
-                processed_data = [process_text(post['text']) for post in x_data]
-                self.result_text.setText("\n".join(processed_data))
-            else:
-                self.result_text.setText("No data fetched from X. Check your X_BEARER_TOKEN and network connection.")
-        except Exception as e:
-            error_msg = f"Error fetching data: {str(e)}\n\n"
-            error_msg += traceback.format_exc()
-            self.result_text.setText(error_msg)
-        finally:
-            self.status_label.setText("Ready")
+    def add_output_section(self, layout):
+        layout.addWidget(QLabel("Output"))
 
-    def public_datasets(self):
-        self.status_label.setText("Accessing public datasets...")
-        # Implement public dataset access logic here
+        self.output_text = QTextEdit()
+        self.output_text.setReadOnly(True)
+        layout.addWidget(self.output_text)
 
-    def local_files(self):
-        self.status_label.setText("Importing local files...")
-        # Implement local file import logic here
+    def fetch_data(self):
+        query = self.query_input.text()
+        x_data = fetch_x_data(query, 10)
+        reddit_data = fetch_reddit_data(query, 10)
+        self.output_text.append(f"Fetched {len(x_data)} X posts and {len(reddit_data)} Reddit posts")
+
+    def process_data(self):
+        # This is a placeholder. Implement actual data processing logic here.
+        self.output_text.append("Data processed successfully")
+if __name__ == "__main__":
+    from PySide6.QtWidgets import QApplication
+    import sys
+
+    app = QApplication(sys.argv)
+    window = MainWindow(None, None)  # Pass None for now as placeholders
+    window.show()
+    sys.exit(app.exec())

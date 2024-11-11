@@ -1,10 +1,6 @@
-import os
 import tweepy
+import praw
 import os
-import tweepy
-import praw  # Add this line at the top of the file
-
-# ... rest of your code ...
 
 def fetch_x_data(query, count=100, silent=False):
     bearer_token = os.environ.get('X_BEARER_TOKEN')
@@ -37,27 +33,24 @@ def fetch_x_data(query, count=100, silent=False):
         print(f"Total tweets fetched: {len(posts)}")
     return posts
 
-def fetch_reddit_data(subreddit_name, limit=100):
-    reddit = praw.Reddit(
-        client_id=os.environ.get('REDDIT_CLIENT_ID'),
-        client_secret=os.environ.get('REDDIT_CLIENT_SECRET'),
-        user_agent="DatasetGenerator/1.0"
-    )
+def fetch_reddit_data(subreddit, limit=100):
+    reddit = praw.Reddit(client_id='your_client_id',
+                         client_secret='your_client_secret',
+                         user_agent='your_user_agent')
 
+    subreddit = reddit.subreddit(subreddit)
     posts = []
-    try:
-        subreddit = reddit.subreddit(subreddit_name)
-        for submission in subreddit.hot(limit=limit):
-            posts.append({
-                'platform': 'Reddit',
-                'title': submission.title,
-                'text': submission.selftext,
-                'author': submission.author.name if submission.author else '[deleted]',
-                'created_at': submission.created_utc
-            })
-    except praw.exceptions.PrawcoreException as e:
-        print(f"Error fetching posts from Reddit: {e}")
+
+    for post in subreddit.hot(limit=limit):
+        posts.append({
+            'title': post.title,
+            'body': post.selftext,
+            'score': post.score,
+            'url': post.url
+        })
+
     return posts
+
 if __name__ == "__main__":
     # This block is for testing purposes
     x_data = fetch_x_data("python", 10)

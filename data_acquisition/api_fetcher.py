@@ -1,14 +1,13 @@
 import requests
-from typing import Dict, Any
 
-def fetch_data_from_api(url: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
-    """
-    Fetch data from a RESTful API.
-    """
-    try:
+class ApiFetcher:
+    def __init__(self):
+        self.base_url = "https://api.example.com"  # Replace with your actual API base URL
+
+    def fetch_data(self, endpoint, params=None):
+        url = f"{self.base_url}/{endpoint}"
         response = requests.get(url, params=params)
         response.raise_for_status()  # Raises an HTTPError for bad responses
         return response.json()
-    except requests.RequestException as e:
-        print(f"Error fetching data from API: {e}")
-        return {}
+
+    # Add more methods as needed for different API endpoints or data sources
