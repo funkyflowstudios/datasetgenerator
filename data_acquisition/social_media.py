@@ -1,12 +1,18 @@
 import os
 import tweepy
+import os
+import tweepy
+import praw  # Add this line at the top of the file
 
-def fetch_x_data(query, count=100):
+# ... rest of your code ...
+
+def fetch_x_data(query, count=100, silent=False):
     bearer_token = os.environ.get('X_BEARER_TOKEN')
     if not bearer_token:
         raise ValueError("X_BEARER_TOKEN environment variable is not set")
 
-    print(f"Attempting to fetch {count} tweets with query: {query}")
+    if not silent:
+        print(f"Attempting to fetch {count} tweets with query: {query}")
     client = tweepy.Client(bearer_token=bearer_token)
 
     posts = []
@@ -21,11 +27,14 @@ def fetch_x_data(query, count=100):
                 'user': tweet.author_id,
                 'created_at': tweet.created_at
             })
-            print(f"Fetched tweet: {tweet.text[:50]}...")
+            if not silent:
+                print(f"Fetched tweet: {tweet.text[:50]}...")
     except tweepy.errors.TweepyException as e:
-        print(f"Error fetching posts from X: {e}")
+        if not silent:
+            print(f"Error fetching posts from X: {e}")
 
-    print(f"Total tweets fetched: {len(posts)}")
+    if not silent:
+        print(f"Total tweets fetched: {len(posts)}")
     return posts
 
 def fetch_reddit_data(subreddit_name, limit=100):

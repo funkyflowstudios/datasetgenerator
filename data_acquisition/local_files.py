@@ -1,40 +1,39 @@
-import pandas as pd
 import os
+import csv
+import io
 
-def load_local_file(file_path):
-    """
-    Load a local file into a pandas DataFrame.
+def read_csv_file(file_path):
+    with open(file_path, 'r', newline='') as csvfile:
+        content = csvfile.read().strip()
 
-    Args:
-        file_path (str): Path to the local file.
+        if not content:
+            return []
 
-    Returns:
-        pandas.DataFrame: DataFrame containing the data from the file.
+        # Use StringIO to create a file-like object from the string
+        csv_io = io.StringIO(content)
+        reader = csv.reader(csv_io)
 
-    Raises:
-        FileNotFoundError: If the specified file does not exist.
-        ValueError: If the file format is unsupported.
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
+        try:
+            header = next(reader)
+            if not header:
+                return []
 
-    file_extension = os.path.splitext(file_path)[1].lower()
-    try:
-        if file_extension == '.csv':
-            df = pd.read_csv(file_path)
-        elif file_extension in ['.xls', '.xlsx']:
-            df = pd.read_excel(file_path)
-        elif file_extension == '.json':
-            df = pd.read_json(file_path)
-        elif file_extension == '.txt':
-            df = pd.read_csv(file_path, sep='\t')  # Assuming tab-separated
-        else:
-            raise ValueError(f"Unsupported file format: {file_extension}")
+            rows = []
+            for row in reader:
+                if len(row) != len(header):
+                    raise csv.Error("Mismatched number of columns")
+                rows.append(dict(zip(header, row)))
 
-        return df
-    except Exception as e:
-        print(f"Error loading file {file_path}: {e}")
-        return None
+            return rows
+        except csv.Error as e:
+            raise csv.Error(f"Invalid CSV: {str(e)}")
+
+def list_files_in_directory(directory_path):
+    if not os.path.exists(directory_path):
+        raise ValueError(f"Directory does not exist: {directory_path}")
+    return os.listdir(directory_path)
+
+# You can keep any existing functions here
 
 # Example usage
 if __name__ == "__main__":
@@ -43,3 +42,4 @@ if __name__ == "__main__":
     if data is not None:
         print(f"Loaded data with shape: {data.shape}")
         print(data.head())
+

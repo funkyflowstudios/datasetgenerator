@@ -63,4 +63,5 @@ build/*
 config.local.ini
 # Ignore personal scripts
 git_update.py
-checkenvar.py
+# Ignore tests folder
+tests/

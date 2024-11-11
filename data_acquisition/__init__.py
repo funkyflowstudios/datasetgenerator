@@ -10,9 +10,9 @@ This module provides functions to acquire data from various sources:
 Each submodule contains specific functions for data acquisition from its respective source.
 """
 
-from .web_scraping import scrape_website
-from .social_media import fetch_x_data, fetch_reddit_data
-from .public_datasets import load_public_dataset
-from .local_files import load_local_file
+from . import social_media
+from . import local_files
+from . import public_datasets
+from . import web_scraping
 
 __all__ = ['scrape_website', 'get_x_data', 'get_reddit_data', 'load_public_dataset', 'load_local_file']
