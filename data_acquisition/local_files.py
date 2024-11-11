@@ -1,45 +1,37 @@
 import os
 import csv
 import io
+import json
+import pandas as pd
 
-def read_csv_file(file_path):
-    with open(file_path, 'r', newline='') as csvfile:
-        content = csvfile.read().strip()
+def read_file(file_path):
+    try:
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.json'):
+            df = pd.read_json(file_path)
+        else:
+            raise ValueError("Unsupported file type. Please use CSV or JSON.")
 
-        if not content:
-            return []
-
-        # Use StringIO to create a file-like object from the string
-        csv_io = io.StringIO(content)
-        reader = csv.reader(csv_io)
-
-        try:
-            header = next(reader)
-            if not header:
-                return []
-
-            rows = []
-            for row in reader:
-                if len(row) != len(header):
-                    raise csv.Error("Mismatched number of columns")
-                rows.append(dict(zip(header, row)))
-
-            return rows
-        except csv.Error as e:
-            raise csv.Error(f"Invalid CSV: {str(e)}")
+        return df.to_dict('records')
+    except Exception as e:
+        print(f"Error reading file: {str(e)}")
+        return []
 
 def list_files_in_directory(directory_path):
     if not os.path.exists(directory_path):
         raise ValueError(f"Directory does not exist: {directory_path}")
     return os.listdir(directory_path)
 
-# You can keep any existing functions here
+def save_to_csv(data, file_path):
+    df = pd.DataFrame(data)
+    df.to_csv(file_path, index=False)
+    print(f"Data saved to CSV: {file_path}")
 
-# Example usage
+def save_to_json(data, file_path):
+    with open(file_path, 'w') as jsonfile:
+        json.dump(data, jsonfile, indent=2)
+    print(f"Data saved to JSON: {file_path}")
+
 if __name__ == "__main__":
-    file_path = 'path/to/your/local/file.csv'  # Replace with an actual file path
-    data = load_local_file(file_path)
-    if data is not None:
-        print(f"Loaded data with shape: {data.shape}")
-        print(data.head())
-
+    print("This module provides functions for reading and writing local files.")
