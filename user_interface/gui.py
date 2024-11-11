@@ -1,105 +1,74 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit, QProgressBar
-from PyQt5.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTextEdit
+from PySide6.QtCore import Qt
+from data_acquisition.social_media import fetch_x_data
 from data_processing.text_processing import process_text
+import traceback
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("DatasetGenerator")
+        self.setWindowTitle("Dataset Generator")
         self.setGeometry(100, 100, 800, 600)
 
+        # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
 
-        main_layout = QHBoxLayout()
-        central_widget.setLayout(main_layout)
+        # Create buttons
+        button_layout = QHBoxLayout()
+        self.web_scraping_btn = QPushButton("Web Scraping")
+        self.social_media_btn = QPushButton("Social Media")
+        self.public_datasets_btn = QPushButton("Public Datasets")
+        self.local_files_btn = QPushButton("Local Files")
 
-        # Left panel for buttons
-        left_panel = QWidget()
-        left_layout = QVBoxLayout()
-        left_panel.setLayout(left_layout)
-        main_layout.addWidget(left_panel)
+        button_layout.addWidget(self.web_scraping_btn)
+        button_layout.addWidget(self.social_media_btn)
+        button_layout.addWidget(self.public_datasets_btn)
+        button_layout.addWidget(self.local_files_btn)
 
-        # Right panel for status and progress
-        right_panel = QWidget()
-        right_layout = QVBoxLayout()
-        right_panel.setLayout(right_layout)
-        main_layout.addWidget(right_panel)
+        main_layout.addLayout(button_layout)
 
-        self.status_label = QLabel("Welcome to DatasetGenerator")
-        right_layout.addWidget(self.status_label)
+        # Create text area for displaying results
+        self.result_text = QTextEdit()
+        self.result_text.setReadOnly(True)
+        main_layout.addWidget(self.result_text)
 
-        self.progress_bar = QProgressBar()
-        right_layout.addWidget(self.progress_bar)
+        # Create status label
+        self.status_label = QLabel("Ready")
+        main_layout.addWidget(self.status_label)
 
-        self.log_text = QTextEdit()
-        self.log_text.setReadOnly(True)
-        right_layout.addWidget(self.log_text)
-
-        # Add buttons for various operations
-        buttons = [
-            ("Web Scraping", self.web_scraping),
-            ("Social Media", self.social_media),
-            ("Public Datasets", self.public_datasets),
-            ("Local Files", self.local_files),
-            ("Process Data", self.process_data),
-            ("Generate Data", self.generate_data),
-            ("Visualize Data", self.visualize_data),
-            ("Export Data", self.export_data)
-        ]
-
-        for button_text, button_function in buttons:
-            button = QPushButton(button_text)
-            button.clicked.connect(button_function)
-            left_layout.addWidget(button)
-
-    def update_status(self, message):
-        self.status_label.setText(message)
-        self.log_text.append(message)
-
-    def simulate_progress(self):
-        self.progress_bar.setValue(0)
-        for i in range(101):
-            QTimer.singleShot(i * 20, lambda v=i: self.progress_bar.setValue(v))
+        # Connect buttons to functions
+        self.web_scraping_btn.clicked.connect(self.web_scraping)
+        self.social_media_btn.clicked.connect(self.social_media)
+        self.public_datasets_btn.clicked.connect(self.public_datasets)
+        self.local_files_btn.clicked.connect(self.local_files)
 
     def web_scraping(self):
-        self.update_status("Web scraping in progress...")
-        self.simulate_progress()
-        # Add actual web scraping logic here
+        self.status_label.setText("Web scraping in progress...")
+        # Implement web scraping logic here
 
     def social_media(self):
-        self.update_status("Collecting social media data...")
-        self.simulate_progress()
-        # Add actual social media data collection logic here
+        self.status_label.setText("Collecting social media data...")
+        try:
+            # Example: Fetch data from X
+            x_data = fetch_x_data("python", 10)
+            if x_data:
+                processed_data = [process_text(post['text']) for post in x_data]
+                self.result_text.setText("\n".join(processed_data))
+            else:
+                self.result_text.setText("No data fetched from X. Check your X_BEARER_TOKEN and network connection.")
+        except Exception as e:
+            error_msg = f"Error fetching data: {str(e)}\n\n"
+            error_msg += traceback.format_exc()
+            self.result_text.setText(error_msg)
+        finally:
+            self.status_label.setText("Ready")
 
     def public_datasets(self):
-        self.update_status("Accessing public datasets...")
-        self.simulate_progress()
-        # Add actual public dataset access logic here
+        self.status_label.setText("Accessing public datasets...")
+        # Implement public dataset access logic here
 
     def local_files(self):
-        self.update_status("Importing local files...")
-        self.simulate_progress()
-        # Add actual local file import logic here
-
-    def process_data(self):
-        self.update_status("Processing data...")
-        self.simulate_progress()
-        # Example usage of processing functions
-        processed_text = process_text("Sample text")
-        self.log_text.append(f"Processed text: {processed_text}")
-
-    def generate_data(self):
-        self.update_status("Generating data...")
-        self.simulate_progress()
-        # Add actual data generation logic here
-
-    def visualize_data(self):
-        self.update_status("Visualizing data...")
-        self.simulate_progress()
-        # Add actual data visualization logic here
-
-    def export_data(self):
-        self.update_status("Exporting data...")
-        self.simulate_progress()
-        # Add actual data export logic here
+        self.status_label.setText("Importing local files...")
+        # Implement local file import logic here

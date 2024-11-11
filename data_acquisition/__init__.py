@@ -11,7 +11,7 @@ Each submodule contains specific functions for data acquisition from its respect
 """
 
 from .web_scraping import scrape_website
-from .social_media import get_x_data, get_reddit_data
+from .social_media import fetch_x_data, fetch_reddit_data
 from .public_datasets import load_public_dataset
 from .local_files import load_local_file
 

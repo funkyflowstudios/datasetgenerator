@@ -31,13 +31,36 @@ Thumbs.db
 *.o
 *.class
 
-# Ignore all files outside of this project
-/*
-!.gitignore
+# Include important project files and directories
 !README.md
 !LICENSE
 !requirements.txt
+!setup.py
+!tox.ini
+!MANIFEST.in
+!conda_env.yml
 !CODE_OF_CONDUCT.md
 !CHANGELOG.md
+
+# Include important directories
 !.github/
 !src/
+!test/
+!docs/
+!data/
+!build/
+
+# Ignore contents of data directory, but keep the directory itself
+data/*
+!data/.gitkeep
+
+# Ignore build artifacts, but keep build scripts
+build/*
+!build/*.py
+!build/*.sh
+
+# Ignore any local configuration files
+config.local.ini
+# Ignore personal scripts
+git_update.py
+checkenvar.py
