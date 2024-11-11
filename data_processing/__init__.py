@@ -1,1 +1,1 @@
-from . import data_processor
+from .data_processor import DataProcessor, process_data

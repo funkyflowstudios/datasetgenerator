@@ -1,22 +1,36 @@
-import os
-import csv
-import io
-import json
 import pandas as pd
+import json
 
 def read_file(file_path):
     try:
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            # Try reading CSV with different encodings
+            encodings = ['utf-8', 'iso-8859-1', 'cp1252']
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(file_path, encoding=encoding)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                raise ValueError("Unable to decode the CSV file with known encodings.")
         elif file_path.endswith('.json'):
-            df = pd.read_json(file_path)
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+            df = pd.DataFrame(data)
         else:
             raise ValueError("Unsupported file type. Please use CSV or JSON.")
 
-        return df.to_dict('records')
+        if df.empty:
+            print("Warning: The file is empty")
+
+        return df
+    except pd.errors.EmptyDataError:
+        print("The file is empty or contains no valid data.")
+        return pd.DataFrame()
     except Exception as e:
         print(f"Error reading file: {str(e)}")
-        return []
+        return pd.DataFrame()
 
 def list_files_in_directory(directory_path):
     if not os.path.exists(directory_path):

@@ -1,66 +1,53 @@
 import pandas as pd
 from typing import List, Dict, Any
-import sys
-import re
-import spacy
 from textblob import TextBlob
 
 class DataProcessor:
-    def __init__(self):
-        self.nlp = spacy.load("en_core_web_sm")
+    def process_data(self, data):
+        if isinstance(data, pd.DataFrame):
+            df = data
+        else:
+            df = pd.DataFrame(data)
 
-    def process_data(self, data: List[Dict[str, Any]], columns: List[str] = None) -> pd.DataFrame:
-        """
-        Process the input data and return a pandas DataFrame.
-        """
-        if not data:
-            return pd.DataFrame()
+        if df.empty:
+            return df  # Return empty DataFrame if input is empty
 
-        if columns is None:
-            columns = [key for key in data[0].keys()]
+        # Check if 'text' column exists, if not, try to use 'title' or the first string column
+        text_columns = ['text', 'title'] + df.select_dtypes(include=['object']).columns.tolist()
+        text_column = next((col for col in text_columns if col in df.columns), None)
 
-        df = pd.DataFrame(data, columns=columns)
+        if text_column is None:
+            raise ValueError("No suitable text column found for sentiment analysis")
+
+        # Apply sentiment analysis
+        df['sentiment'] = df[text_column].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
+
         return df
 
-    def export_to_csv(self, df: pd.DataFrame, filename: str) -> None:
-        """
-        Export the processed data to a CSV file.
-        """
-        try:
-            df.to_csv(filename, index=False)
-            print(f"Data exported successfully to {filename}")
-        except Exception as e:
-            print(f"Error exporting data to CSV: {e}")
-            sys.exit(1)  # Exit the program with an error code
+def process_data(data: List[Dict[str, Any]], columns: List[str] = None) -> pd.DataFrame:
+    # This function is kept for backward compatibility
+    processor = DataProcessor()
+    return processor.process_data(data)
 
-    def clean_text(self, text: str) -> str:
-        """
-        Clean the input text by removing special characters, extra whitespace, and converting to lowercase.
-        """
-        # Remove special characters and digits
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
-        # Convert to lowercase and remove extra whitespace
-        text = ' '.join(text.lower().split())
-        return text
+class DataProcessor:
+    def process_data(self, data):
+        if isinstance(data, pd.DataFrame):
+            df = data
+        else:
+            df = pd.DataFrame(data)
 
-    def extract_entities(self, text: str) -> List[str]:
-        """
-        Extract named entities from the input text using spaCy.
-        """
-        doc = self.nlp(text)
-        entities = [ent.text for ent in doc.ents]
-        return entities
+        if df.empty:
+            return df  # Return empty DataFrame if input is empty
+        # Check if 'text' column exists, if not, try to use 'title' or the first string column
+        text_columns = ['text', 'title'] + df.select_dtypes(include=['object']).columns.tolist()
+        text_column = next((col for col in text_columns if col in df.columns), None)
 
-    def analyze_sentiment(self, text: str) -> Dict[str, float]:
-        """
-        Perform sentiment analysis on the input text using TextBlob.
-        """
-        blob = TextBlob(text)
-        sentiment = blob.sentiment
-        return {
-            "polarity": sentiment.polarity,
-            "subjectivity": sentiment.subjectivity
-        }
+        if text_column is None:
+            raise ValueError("No suitable text column found for sentiment analysis")
+        # Apply sentiment analysis
+        df['sentiment'] = df[text_column].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
+
+        return df
 # Keep the original functions for backwards compatibility
 def process_data(data: List[Dict[str, Any]], columns: List[str] = None) -> pd.DataFrame:
     return DataProcessor().process_data(data, columns)

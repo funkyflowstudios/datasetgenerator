@@ -13,6 +13,9 @@ Each submodule contains specific functions for data acquisition from its respect
 from . import social_media
 from . import local_files
 from . import public_datasets
-from . import web_scraping
+
+# Move the import inside a function to avoid circular import issues
+def scrape_website():
+    # Use web_scraping here
 
 __all__ = ['scrape_website', 'get_x_data', 'get_reddit_data', 'load_public_dataset', 'load_local_file']
